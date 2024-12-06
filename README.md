@@ -2,6 +2,8 @@
 
 This repository contains the Power BI project files and resources for AtliQ Hardware's Sales Analytics Dashboard. AtliQ Hardware, a leading hardware supplier in India, faces challenges in dynamically tracking and analyzing sales data across its widespread operations. This project aims to automate and streamline their sales data analysis, enabling more informed decision-making through advanced analytics.
 
+![!alt text](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTg3aHk0anBjZXprcXd5cHd2NGg0MG9ja202dzI2Nnd5aGRwbXZvOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NQj3aNgf8Rw8LijJ2z/giphy.gif)
+
 ## Project Background
 
 AtliQ Hardware services a wide range of clients including Surge Stores, Nomad Stores, and Excel Stores. The rapidly expanding market has exacerbated challenges related to data management and insight generation. Previously, regional managers relied on verbal communication, leading to data inconsistencies and delays in decision-making.
