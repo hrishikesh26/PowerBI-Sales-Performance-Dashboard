@@ -1,0 +1,70 @@
+handling data cleaning, some vague values, currency converstions,
+
+also did the setup for MySQL connector and power bi connector to successfully load the data
+
+used power query to transform the data after pulling it in power bi environment
+had fact and dimension tables. (fact table being the transactions table)
+
+handled null value in power query in markets table - = Table.SelectRows(sales_markets, each ([zone] <> ""))
+
+handled sales value which has -1 and 0 in power query  = Table.SelectRows(sales_transactions, each ([sales_amount] <> -1 and [sales_amount] <> 0))
+
+added custom column and conditional column for normalising sales currency unit  = Table.AddColumn(#"Filtered Rows", "norm_sales_amount", each if [currency] = "USD" or [currency] = "USD#(cr)" then [sales_amount]*75 else [sales_amount])
+these were the transformations
+
+handled duplicate values by just keeping "USD#(cr)" also the values with 'cr' and without 'cr' were the same so thought of removing values without 'cr'
+
+Transformed date format to - mmm yy for better understanding
+
+created new measures - 
+Revenue = SUM('sales transactions'[sales_amount] )
+Sales Qty = Sum('sales transactions'[sales_qty])
+
+
+Created various filters for the charts and measures like revenue and sales qty
+
+
+made some changes as there were some corrections - 
+Revenue = SUM('sales transactions'[norm_sales_amount])  used this column so that the new norm column could be used because some transactions were in usd. converted this column from string type to decimal type.
+
+
+-------- improvements
+fetched two more columns such as profit margin and cost price to analyse the sales in more depth relative to the business performance.
+
+analyzing the margin on profits and sales
+to do this i created a new measure - Total Profit Margin = SUM('sales transactions'[profit_margin])   changed the currency aganin to inr and to one decimal point.
+
+Added another measure - Profit Margin % = DIVIDE([Total Profit Margin],[Revenue],0) . 
+This helped to analyze the % of profit outcome from diffent sources. for eg we used for % profit sharing from different markets, which could help in focusing which markets to concentrate based on how they are doing and what strategies can be used in other markets to run the business to increase profit in those areas. Found out that market that showed higher revenues had only smaller % profit share. this is a key insight. revenue by market showed delhi as highes contributor with 520 million of revenue. but Bhubaneshwar had just 1m revenue. but % profit measure showed Bhubaneshwar as 10.5% profit % on margin where as delhi just 0.6%   (in the year 2020 - applied filter) 
+
+but now their could be a complex where Bhubaneshwar might be contributing less to total profit % as compared to delhi %, this maybe due to lower margins on profits, smaller sales but high profit gains, etc. to verify this, the % profit margin needs to be looked for how much it contributes to the total % profit share. 
+For this i created a new measure - Profit Margin Contribution % = DIVIDE([Total Profit Margin], CALCULATE([Total Profit Margin],ALL('sales products'),ALL('sales customers'), ALL('sales markets')))
+and saw that actually Mumbai was contributing more towards profit margin contribution
+
+
+from the above measure- i found out that Mumbai (23.9%) had greater share in Profit % contribution even after having singnificantly lower revenue (150m) as compared to delhi (520m) (22.1%). Which gives me a learning that to increase the revenue i could use strategies used in Mumbai to extract greater profit from delhi's revenue which would increase my overall profit in the business
+
+Now, digging deep - i'm trying to find out what is the revenue market share - I used this measure - Revenue Contribution % = DIVIDE([Revenue], CALCULATE([Revenue], ALL('sales products'), ALL('sales customers'), ALL('sales markets')))
+this was created to see which markets gave me how much % of total revenue. 
+
+another insights that i learned about the data from business perspective is that - by compation revenue, profit margin %, Profit Margin Contribution %, Revenue Contribution % in a table format, I got to know that ElectricalSara Stores had very less profit margin % (0.4%) for eg a item sold for 104, they could only make 4rs from its sales. Yet that had significant Profit Margin Contribution %  - 11.92%. Which means they gave orders in big quantity which had us to gain such huge profit margin contribution%
+
+also so, if we have some customer having negative % in all these measures then we could decide what's beneficial for the business. Maybe we could just drop that particular customer since negative values contribute to losses. 
+
+
+Now, creating performance insights. 
+Create a dynamic slicer (a  whit if % profit was this and this kind of parameter to predict the sales and how business would perform) also called as dynamic filter. click the visual, go to the top menu and search for  modeling -> click on new parameter and entered these values - what will your variable adjust? - numeric range, Name - Profit Target, Data Type  - Decimal Number, - Minimum - -0.05, Max - 0.15, Increment - 0.01. 
+Why i created this slicer/filter which is dynamic is to create a red alert when my profit goes below the slicer value (values being the expectation to be hit = Target to be achieved). 
+how i created this is by showcasing colour difference dynamically. 
+created a new measure under Profit Target - Target Diff = [Profit Margin %] - 'Profit Target'[Profit Target Value]. 
+now for dynamic color change go to format pane - then scroll down to bars, click on it and use the 'fx' notation to add dynamic color based on target difference conditions. used this formula - got to format style - rules, field set to - target difference measure created  - and the rule created is - if value >= -1 Number and < 0 Number then color = red. 
+So what this rule does is the as soon as i set profit target in dashboard to -2 using the profit target filter, it will show me the areas which are not satisfying the target. for eg, when i set profit target to -2 the region highlighted in red was - Lucknow with -2%. When I move the slider to 1% as profit target it shows surat, delhi,NCR, Kanpur, Lucknow performing using 1% profit target and are highlighted as red. 
+
+
+Now, I create another measure to just compare the selected year filter with the last year to the selected year. This would give me a good insight about how this year business is performing as compared to the last year. 
+for that i used this  - Revenue LY = CALCULATE([Revenue], SAMEPERIODLASTYEAR('sales date'[date]))
+now, since i'm getting data from previous report and i'm comparing years data which is cross highlighting and cross-filtering. I had to enable from setting for cross highlighting and cross-filtering and also enabled  cross-report drillthrough. 
+with this measure i was able to compare the selected year data to the previous year with profit margin % line showcasing the profit margin % with year to year comparison
+
+
+https://www.youtube.com/watch?v=68m2UCtedj0&list=PLeo1K3hjS3uva8pk1FI3iK9kCOKQdz1I9&index=15
